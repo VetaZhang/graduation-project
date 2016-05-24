@@ -11,3 +11,19 @@ export const user = state => {
 export const friends = state => {
   return state.friends
 }
+
+export const groups = state => {
+  return state.groups
+}
+
+export const requests = state => {
+  return state.requests
+}
+
+export const history = state => {
+  return state.history
+}
+
+export const content = state => {
+  return state.content
+}

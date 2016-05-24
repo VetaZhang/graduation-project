@@ -1,12 +1,13 @@
 var express = require('express');
 var router = express.Router();
 var Friends = require('../controllers/friends')
-// var Request = require('../controllers/request')
+var Requests = require('../controllers/requests')
 
 /* GET home page. */
 router.get('/friends/:id', Friends.getFriends);
-router.post('/friends/:user/:name/:target', Friends.addFriend);
+router.post('/friends', Friends.addFriend);
+router.post('/friends/agree', Friends.agree);
 
-// router.post('/request/:user/:target', Request.request);
+router.get('/requests/:id', Requests.getRequestsList);
 
 module.exports = router;

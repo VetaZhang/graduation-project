@@ -7,7 +7,8 @@ var requestSchema = mongoose.Schema({
     userId: String, // Schema.Types.ObjectId,
     username: String,
     targetId: String,
-    targetName: String,
+    groupId: String,
+    groupName: String,
     result: Boolean
 });
 

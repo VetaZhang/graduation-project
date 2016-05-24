@@ -7,5 +7,14 @@ export default {
     email: localStorage.getItem('email'),
     name: localStorage.getItem('name')
   },
-  friends: []
+  friends: [],
+  groups: [],
+  requests: [],
+  history: {},
+  content: {
+    title: '',
+    component: '',
+    type: '',
+    id: ''
+  }
 }

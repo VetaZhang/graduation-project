@@ -1,21 +1,29 @@
 'use strict'
 
-const actions = require('./actions')
+const History = require('../model/history')
 
 module.exports = {
-  socket: null,
   list: {},
   init (io) {
     io.on('connection', socket => {
-      this.list[`_${data}`] = socket
-      // socket.emit('news', { hello: 'world' });
+      const id = socket.handshake.query.id
+      this.list[`_${id}`] = socket
       socket.on('disconnect', () => {
-        delete this.list[`_${data}`]
+        delete this.list[`_${id}`]
       });
-      socket.on('init', function (data) {
-        console.log(data);
-
-      });
+      socket.on('msgFromFriend', data => {
+        console.log(data)
+        this.send(data.receiver, 'msgFromFriend', data)
+        History.create(data, (error, result) => {
+          // console.log(error, result)
+        })
+      })
     });
+  },
+  send (id, type, msg) {
+    if (this.list[`_${id}`]) {
+      console.log(`Send socket to: _${id},${type},${msg}`)
+      this.list[`_${id}`].emit(type, msg)
+    }
   }
 }

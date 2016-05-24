@@ -1,9 +1,12 @@
 'use strict'
 const User = require('../model/users')
 const Request = require('../model/request')
+const History = require('../model/history')
+const Socket = require('../socket/main')
 
 module.exports = {
   getFriends (req, res, next) {
+    let friends = null
     new Promise(function (resolve, reject) {
       User.findById(req.params.id, (error, result) => {
         if (error) reject(error)
@@ -22,7 +25,8 @@ module.exports = {
             else if (result) {
               resolve({
                 id: result._id,
-                name: result.name
+                name: result.name,
+                email: result.email
               })
             } else reject()
           })
@@ -30,16 +34,44 @@ module.exports = {
       }));
     })
     .then(function (list) {
-      res.json({friends: list})
+      friends = list
+      return Promise.all(list.map(function (item) {
+        return new Promise(function (resolve, reject) {
+          History.find({
+            $or:[{
+              sender: req.params.id,
+              receiver: item.id
+            }, {
+              sender: item.id,
+              receiver: req.params.id
+            }]
+          }, (error, result) => {
+            resolve({
+              key: '_' + item.id,
+              value: result
+            })
+          })
+        })
+      }))
+    })
+    .then(function (data) {
+      let history = {}
+      for (let item of data) {
+        history[item.key] = item.value
+      }
+      res.json({
+        friends: friends,
+        history: history
+      })
     })
     .catch((error) => {
       res.json({error: error})
     })
   },
   addFriend (req, res, next) {
-    const user = req.params.user
-    const name = req.params.name
-    const target = req.params.target
+    const user = req.body.user
+    const name = req.body.name
+    const target = req.body.target
     new Promise(function (resolve, reject) {
       User.findOne({name: target}, (error, result) => {
         if (error) reject(error)
@@ -48,6 +80,11 @@ module.exports = {
         } else reject({msg: '用户不存在'})
       })
     })
+    // .then((id) => {
+    //   Request.findOne({userId: user, targetId: id}, (error, result) => {
+    //     //
+    //   })
+    // })
     .then((id) => {
       return new Promise(function (resolve, reject) {
         Request.create({
@@ -55,17 +92,54 @@ module.exports = {
           userId: user,
           username: name,
           targetId: id,
-          targetName: '',
+          groupId: '',
+          groupName: '',
           result: false
         }, (error, result) => {
           if (error) reject(error)
-          else res.json({})
+          else {
+            Socket.send(id, 'request', result)
+            res.json({})
+          }
         })
       })
     })
     .catch((error) => {
       console.log(error)
       res.json({error: error})
+    })
+  },
+  agree (req, res, next) {
+    const id = req.body._id
+    const user1 = req.body.userId
+    const user2 = req.body.targetId
+
+    new Promise(function (resolve, reject) {
+      User.findByIdAndUpdate(user1,
+        {$push: {friends: user2}},
+        (error, result) => {
+        resolve()
+      })
+    })
+    .then(() => {
+      return new Promise(function (resolve, reject) {
+        User.findByIdAndUpdate(user2,
+          {$push: {friends: user1}},
+          (error, result) => {
+          resolve()
+        })
+      })
+    })
+    .then(() => {
+      return new Promise(function (resolve, reject) {
+        Request.findByIdAndUpdate(id,
+          {$set: {result: true}},
+          (error, result) => {
+          Socket.send(user1, 'refreshFriends')
+          Socket.send(user2, 'refreshFriends')
+          res.json({})
+        })
+      })
     })
   }
 }

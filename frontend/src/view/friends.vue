@@ -1,8 +1,43 @@
 <style>
 .friends {
+  flex: 1;
   width: 200px;
-  height: 100%;
-  border-right: 1px solid #eee;
+
+  .add-box {
+    width: 100%;
+    height: 25px;
+    input {
+      width: 100%;
+      height: 100%;
+      padding: 0 10px;
+      font-size: 14px;
+      border: none;
+      border-right: 1px solid #eee;
+      border-bottom: 1px solid #eee;
+      outline: none;
+    }
+  }
+  .item {
+    width: 100%;
+    height: 35px;
+    padding: 0 10px;
+    line-height: 32px;
+    color: #333;
+    font-size: 15px;
+    border-bottom: 1px solid #eee;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    span {
+      margin-left: 10px;
+      color: #999;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
 }
 </style>
 
@@ -14,8 +49,9 @@
         v-model="newFriendName"
         @keyup.enter="addFriend">
     </div>
-    <div class="item" v-for="friend in friends">
+    <div class="item" v-for="friend in friends" @click="handleClick(friend.id, friend.name)">
       {{friend.name}}
+      <span>{{friend.email}}</span>
     </div>
   </div>
 </template>
@@ -29,6 +65,9 @@
     user,
     friends
   } from '../vuex/getters'
+  import {
+    changeContent
+  } from '../vuex/actions'
 
   export default {
     vuex: {
@@ -36,6 +75,9 @@
         config,
         user,
         friends
+      },
+      actions: {
+        changeContent
       }
     },
     data () {
@@ -44,21 +86,23 @@
       }
     },
     created () {
-      this.$http.get(`${this.config.domain}/friends/${this.user.id}`)
-      .then(result => {
-        if (result.data.error) {
-          console.log(result.data.error)
-        } else {
-          store.dispatch('UPDATE_FRIENDS', result.data.friends)
-        }
-      }, error => {
-        console.log(error)
-      })
+      //
     },
     methods: {
+      handleClick (id, name) {
+        this.changeContent({
+          title: `与 ${name} 聊天中`,
+          component: 'talk',
+          type: 'friend',
+          id: id
+        })
+      },
       addFriend () {
-        const url = `${this.config.domain}/friends/${this.user.id}/${this.user.name}/${this.newFriendName}`
-        this.$http.post(url, {}).then(result => {
+        this.$http.post(`${this.config.domain}/friends`, {
+          user: this.user.id,
+          name: this.user.name,
+          target: this.newFriendName
+        }).then(result => {
             if (result.data.error) {
               console.log(result.data.error)
             } else {
