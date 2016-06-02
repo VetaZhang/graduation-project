@@ -2,6 +2,8 @@
 .friends {
   flex: 1;
   width: 200px;
+  overflow-x: hidden;
+  overflow-y: auto;
 
   .add-box {
     width: 100%;
@@ -10,7 +12,7 @@
       width: 100%;
       height: 100%;
       padding: 0 10px;
-      font-size: 14px;
+      line-height: 22px;
       border: none;
       border-right: 1px solid #eee;
       border-bottom: 1px solid #eee;
@@ -66,7 +68,8 @@
     friends
   } from '../vuex/getters'
   import {
-    changeContent
+    changeContent,
+    showMsg
   } from '../vuex/actions'
 
   export default {
@@ -77,7 +80,8 @@
         friends
       },
       actions: {
-        changeContent
+        changeContent,
+        showMsg
       }
     },
     data () {
@@ -103,14 +107,17 @@
           name: this.user.name,
           target: this.newFriendName
         }).then(result => {
-            if (result.data.error) {
-              console.log(result.data.error)
-            } else {
-              console.log('请求已发送')
-            }
-          }, error => {
-            console.log(error)
-          })
+          this.newFriendName = ''
+          if (result.data.error) {
+            this.showMsg({type: 'error', data: result.data.error})
+            console.log(result.data.error)
+          } else {
+            this.showMsg({type: 'success', data: '发送成功'})
+            console.log('发送成功')
+          }
+        }, error => {
+          console.log(error)
+        })
       }
     }
   }

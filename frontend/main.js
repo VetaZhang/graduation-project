@@ -10,7 +10,7 @@ app.on('window-all-closed', function() {
 
 app.on('ready', function() {
   mainWindow = new BrowserWindow({width: 1200, height: 750, title: 'Electron'});
-  mainWindow.setMinimumSize(900, 650);
+  mainWindow.setMinimumSize(600, 450);
   mainWindow.openDevTools()
   mainWindow.loadUrl('file://' + __dirname + '/index.html');
 });

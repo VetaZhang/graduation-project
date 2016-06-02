@@ -27,3 +27,7 @@ export const history = state => {
 export const content = state => {
   return state.content
 }
+
+export const msg = state => {
+  return state.msg
+}

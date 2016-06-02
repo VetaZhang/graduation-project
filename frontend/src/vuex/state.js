@@ -15,6 +15,11 @@ export default {
     title: '',
     component: '',
     type: '',
-    id: ''
+    id: '',
+    groupIndex: null
+  },
+  msg: {
+    type: '',
+    data: ''
   }
 }

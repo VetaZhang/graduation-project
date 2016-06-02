@@ -76,15 +76,12 @@ module.exports = {
       User.findOne({name: target}, (error, result) => {
         if (error) reject(error)
         else if (result) {
-          resolve(result._id)
-        } else reject({msg: '用户不存在'})
+          if (result.friends.indexOf(req.body.user) >= 0)
+            reject({error: 'TA 已经是您的好友了'})
+          else resolve(result._id)
+        } else reject({error: '用户不存在'})
       })
     })
-    // .then((id) => {
-    //   Request.findOne({userId: user, targetId: id}, (error, result) => {
-    //     //
-    //   })
-    // })
     .then((id) => {
       return new Promise(function (resolve, reject) {
         Request.create({
@@ -106,7 +103,7 @@ module.exports = {
     })
     .catch((error) => {
       console.log(error)
-      res.json({error: error})
+      res.json(error)
     })
   },
   agree (req, res, next) {
@@ -116,7 +113,7 @@ module.exports = {
 
     new Promise(function (resolve, reject) {
       User.findByIdAndUpdate(user1,
-        {$push: {friends: user2}},
+        {$addToSet: {friends: user2}},
         (error, result) => {
         resolve()
       })
@@ -124,7 +121,7 @@ module.exports = {
     .then(() => {
       return new Promise(function (resolve, reject) {
         User.findByIdAndUpdate(user2,
-          {$push: {friends: user1}},
+          {$addToSet: {friends: user1}},
           (error, result) => {
           resolve()
         })

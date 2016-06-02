@@ -2,6 +2,8 @@
 .requests {
   flex: 1;
   width: 200px;
+  overflow-x: hidden;
+  overflow-y: auto;
 
   .list {
     position: relative;

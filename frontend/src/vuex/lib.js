@@ -15,8 +15,8 @@ export default {
         data.msg = `${data.username} 请求添加您为好友`
         dispatch('ADD_REQUEST', data)
       }break;
-      case 'groups': {
-        data.msg = `${data.username} 请求加入群组 ${targetName}`
+      case 'group': {
+        data.msg = `${data.username} 请求加入群组 ${data.groupName}`
         dispatch('ADD_REQUEST', data)
       }break;
       default: ;
@@ -33,5 +33,23 @@ export default {
     }, error => {
       console.log(error)
     })
+  },
+  getGroups: function (cb) {
+    http.get(`${domain}/getGroups/${userId}`)
+    .then(result => {
+      if (result.data.error) {
+        console.log(result.data.error)
+      } else {
+        cb(result.data)
+      }
+    }, error => {
+      console.log(error)
+    })
+  },
+  showMsg (dispatch, msg) {
+    dispatch('SHOW_MSG', msg)
+    setTimeout(function () {
+      dispatch('SHOW_MSG', {type: '', data: ''})
+    }, 2000)
   }
 }

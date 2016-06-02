@@ -6,10 +6,13 @@ export default {
     state.user.name = data.name
     state.user.email = data.email
   },
-  REMOVE_USER (state) {
+  LOGOUT (state) {
     state.user.id = ''
     state.user.name = ''
     state.user.email = ''
+    localStorage.removeItem('id')
+    localStorage.removeItem('email')
+    localStorage.removeItem('name')
   },
   UPDATE_FRIENDS (state, data) {
     state.friends = data.friends
@@ -23,11 +26,27 @@ export default {
   },
   CHANGE_CONTENT (state, data) {
     state.content = data
-    // state.content.component = data.component;
-    // state.content.type = data.type;
-    // state.content.id = data.id
   },
   ADD_NEW_HISTORY (state, id, data) {
     state.history[`_${id}`].push(data)
+  },
+  UPDATE_GROUPS (state, data) {
+    state.groups = data.groups
+  },
+  ADD_GROUP_HISTORY (state, index, data) {
+    state.groups[index].history.push(data)
+  },
+  ADD_MSG_BY_ID (state, id, msg) {
+    let group = null
+    state.groups.forEach((item) => {
+      if (item._id === id) {
+        group = item
+      }
+    })
+    group.history.push(msg)
+  },
+  SHOW_MSG (state, msg) {
+    if (msg.type) state.msg.type = msg.type
+    state.msg.data = msg.data
   }
 }

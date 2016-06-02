@@ -16,6 +16,8 @@
     }
     .talk-content {
       flex: 1;
+      overflow-x: hidden;
+      overflow-y: auto;
 
       .talk-item {
         display: flex;
@@ -80,8 +82,23 @@
       {{content.title}}
     </div>
     <div class="talk-content">
-      <div class="talk-item"
+      <div class="talk-item" v-show="content.type === 'friend'"
         v-for="item in history['_' + content.id]"
+        :class="{me: item.sender === user.id}">
+        <span class="title" v-show="item.sender !== user.id">
+          {{item.senderName || 'Unknow'}}
+          <span>{{item.time}}</span>
+        </span>
+        <span class="title" v-show="item.sender === user.id">
+          <span>{{item.time}}</span>
+          {{item.senderName || 'Unknow'}}
+        </span>
+        <span class="content">
+          {{item.content}}
+        </span>
+      </div>
+      <div class="talk-item" v-show="content.type === 'group'"
+        v-for="item in groups[content.groupIndex || 0].history"
         :class="{me: item.sender === user.id}">
         <span class="title" v-show="item.sender !== user.id">
           {{item.senderName || 'Unknow'}}
@@ -109,11 +126,13 @@
   import {
     content,
     history,
-    user
+    user,
+    groups
   } from '../vuex/getters'
   import {
     send,
-    addNewHistory
+    addNewHistory,
+    addGroupHistory
   } from '../vuex/actions'
 
   export default {
@@ -121,11 +140,13 @@
       getters: {
         content,
         history,
-        user
+        user,
+        groups
       },
       actions: {
         send,
-        addNewHistory
+        addNewHistory,
+        addGroupHistory
       }
     },
     data () {
@@ -135,17 +156,39 @@
     },
     methods: {
       handleEnter (e) {
-        e.target.blur()
+        // e.target.blur()
         let t = new Date()
-        let msg = {
-          sender: this.user.id,
-          senderName: this.user.name,
-          receiver: this.content.id,
-          content: this.msg.replace('\n', ''),
-          time: `${t.getHours()}:${t.getMinutes()}:${t.getSeconds()}`
+        let time = `${t.getHours()}:${t.getMinutes()}:${t.getSeconds()}`
+        switch (this.content.type) {
+          case 'friend': {
+            let msg = {
+              sender: this.user.id,
+              senderName: this.user.name,
+              receiver: this.content.id,
+              content: this.msg.replace('\n', ''),
+              time
+            }
+            this.addNewHistory(this.content.id, msg)
+            this.send('msgFromFriend', msg)
+          }break;
+          case 'group': {
+            let msg = {
+              sender: this.user.id,
+              senderName: this.user.name,
+              content: this.msg.replace('\n', ''),
+              time
+            }
+            this.addGroupHistory(
+              this.content.groupIndex,
+              msg
+            )
+            this.send('msgFromGroup', {
+              id: this.content.id,
+              msg
+            })
+          }break;
+          default: ;
         }
-        this.addNewHistory(this.content.id, msg)
-        this.send('msgFromFriend', msg)
         this.msg = ''
       }
     }

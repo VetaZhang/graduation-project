@@ -1,6 +1,7 @@
 'use strict'
 
 const History = require('../model/history')
+const Group = require('../model/group')
 
 module.exports = {
   list: {},
@@ -16,6 +17,22 @@ module.exports = {
         this.send(data.receiver, 'msgFromFriend', data)
         History.create(data, (error, result) => {
           // console.log(error, result)
+        })
+      })
+      socket.on('msgFromGroup', data => {
+        console.log(data)
+        Group.findById(data.id, (error, result) => {
+          result.member.forEach((item) => {
+            if (data.msg.sender !== item) {
+              this.send(item, 'msgFromGroup', data)
+            }
+          })
+        })
+        Group.findByIdAndUpdate(data.id,
+        {
+          $push: {history: data.msg}
+        }, (error, result) => {
+          //
         })
       })
     });
